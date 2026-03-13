@@ -1,6 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "./ui/button";
-import { Clock, Download, MoreHorizontal, Share, ThumbsDown, ThumbsUp } from "lucide-react";
+import {
+  Clock,
+  Download,
+  MoreHorizontal,
+  Share,
+  ThumbsDown,
+  ThumbsUp,
+} from "lucide-react";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { formatDistanceToNow } from "date-fns";
 import { useUser } from "@/lib/AuthContext";
@@ -25,7 +32,7 @@ const VideoInfo = ({ video }: any) => {
     setIsLiked(false);
     setIsDisliked(false);
   }, [video]);
-   const handleLike = async () => {
+  const handleLike = async () => {
     if (!user) return;
     try {
       const res = await axiosInstance.post(`/like/${video._id}`, {
@@ -48,7 +55,7 @@ const VideoInfo = ({ video }: any) => {
       console.log(error);
     }
   };
-   const handleDislike = async () => {
+  const handleDislike = async () => {
     if (!user) return;
     try {
       const res = await axiosInstance.post(`/like/${video._id}`, {
@@ -72,7 +79,7 @@ const VideoInfo = ({ video }: any) => {
     }
   };
 
-   const handleWatchLater = async () => {
+  const handleWatchLater = async () => {
     try {
       const res = await axiosInstance.post(`/watch/${video._id}`, {
         userId: user?._id,
@@ -87,7 +94,7 @@ const VideoInfo = ({ video }: any) => {
     }
   };
 
-    useEffect(() => {
+  useEffect(() => {
     const handleviews = async () => {
       if (user) {
         try {
@@ -103,9 +110,49 @@ const VideoInfo = ({ video }: any) => {
     };
     handleviews();
   }, [user]);
+
+  const handleDownload = async () => {
+  if (!user) {
+    alert("Please login to download videos");
+    return;
+  }
+
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/download/${video._id}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: user.email,
+          title: video.videotitle,
+          filepath: video.filepath,
+        }),
+      }
+    );
+
+    if (res.status === 403) {
+      const data = await res.json();
+      alert(data.message);
+      return;
+    }
+
+    if (!res.ok) {
+      alert("Download failed");
+      return;
+    }
+    window.location.href = `${process.env.NEXT_PUBLIC_BACKEND_URL}/download/${video._id}?email=${user.email}&title=${video.videotitle}&filepath=${video.filepath}`;
+  } catch (error) {
+    console.error(error);
+    alert("Download error");
+  }
+};
+
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-semibold">{video.videotitle}</h1>
+      <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+  {video.videotitle}
+</h1>
 
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -114,16 +161,24 @@ const VideoInfo = ({ video }: any) => {
           </Avatar>
           <div>
             <h3 className="font-medium">{video.videochanel}</h3>
-            <p className="text-sm text-gray-600">1.2M subscribers</p>
+            <p className="text-sm text-[color:var(--text-muted)]">
+  1.2M subscribers
+</p>
           </div>
-          <Button className="ml-4">Subscribe</Button>
+          <Button className="ml-4 bg-red-600 text-white hover:bg-red-700">Subscribe</Button>
         </div>
         <div className="flex items-center gap-2">
           <div className="flex items-center bg-gray-100 rounded-full">
             <Button
               variant="ghost"
               size="sm"
-              className="rounded-l-full"
+              className="
+  rounded-full
+  bg-[color:var(--bg-surface)]
+  text-[color:var(--text-primary)]
+  hover:bg-gray-200
+  dark:hover:bg-gray-800
+"
               onClick={handleLike}
             >
               <ThumbsUp
@@ -137,7 +192,13 @@ const VideoInfo = ({ video }: any) => {
             <Button
               variant="ghost"
               size="sm"
-              className="rounded-r-full"
+              className="
+  rounded-full
+  bg-[color:var(--bg-surface)]
+  text-[color:var(--text-primary)]
+  hover:bg-gray-200
+  dark:hover:bg-gray-800
+"
               onClick={handleDislike}
             >
               <ThumbsDown
@@ -151,7 +212,13 @@ const VideoInfo = ({ video }: any) => {
           <Button
             variant="ghost"
             size="sm"
-            className={`bg-gray-100 rounded-full ${
+            className={`
+  rounded-full
+  bg-[color:var(--bg-surface)]
+  text-[color:var(--text-primary)]
+  hover:bg-gray-200
+  dark:hover:bg-gray-800
+ ${
               isWatchLater ? "text-primary" : ""
             }`}
             onClick={handleWatchLater}
@@ -162,7 +229,13 @@ const VideoInfo = ({ video }: any) => {
           <Button
             variant="ghost"
             size="sm"
-            className="bg-gray-100 rounded-full"
+            className="
+  rounded-full
+  bg-[color:var(--bg-surface)]
+  text-[color:var(--text-primary)]
+  hover:bg-gray-200
+  dark:hover:bg-gray-800
+"
           >
             <Share className="w-5 h-5 mr-2" />
             Share
@@ -170,7 +243,14 @@ const VideoInfo = ({ video }: any) => {
           <Button
             variant="ghost"
             size="sm"
-            className="bg-gray-100 rounded-full"
+            className="
+  rounded-full
+  bg-[color:var(--bg-surface)]
+  text-[color:var(--text-primary)]
+  hover:bg-gray-200
+  dark:hover:bg-gray-800
+"
+            onClick={handleDownload}
           >
             <Download className="w-5 h-5 mr-2" />
             Download
@@ -178,28 +258,33 @@ const VideoInfo = ({ video }: any) => {
           <Button
             variant="ghost"
             size="icon"
-            className="bg-gray-100 rounded-full"
+            className="
+  rounded-full
+  bg-[color:var(--bg-surface)]
+  text-[color:var(--text-primary)]
+  hover:bg-gray-200
+  dark:hover:bg-gray-800
+"
           >
             <MoreHorizontal className="w-5 h-5" />
           </Button>
         </div>
       </div>
-      <div className="bg-gray-100 rounded-lg p-4">
-        <div className="flex gap-4 text-sm font-medium mb-2">
-          <span>{video.views.toLocaleString()} views</span>
-          <span>{formatDistanceToNow(new Date(video.createdAt))} ago</span>
-        </div>
-          <p>
-            Sample video description. This would contain the actual video
-            description from the database.
-          </p>
-        </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="mt-2 p-0 h-auto font-medium"
-        >
-        </Button>
+      <div className="rounded-lg p-4 bg-[color:var(--bg-surface)] text-[color:var(--text-primary)]">
+  <div className="flex gap-4 text-sm font-medium mb-2 text-[color:var(--text-muted)]">
+    <span>{video.views.toLocaleString()} views</span>
+    <span>{formatDistanceToNow(new Date(video.createdAt))} ago</span>
+  </div>
+  <p>
+    Sample video description. This would contain the actual video description
+    from the database.
+  </p>
+</div>
+      <Button
+        variant="ghost"
+        size="sm"
+        className="mt-2 p-0 h-auto font-medium"
+      ></Button>
     </div>
   );
 };
